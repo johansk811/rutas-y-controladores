@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENA ADSO - Sesión 2: Enrutamiento Avanzado, Controladores y TypeScript en ControlLabs</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sena: {
+                            green: '#39A900',
+                            dark: '#1e1e1e',
+                            lightGreen: '#eef9ea',
+                            accent: '#F57C00',
+                            gray: '#f8fafc',
+                            blue: '#0284c7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-sena-green selection:text-white">
+
+    <!-- Navbar Superior -->
+    <header class="bg-sena-dark text-white border-b-4 border-sena-green sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <svg class="h-9 w-9 text-sena-green fill-current" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#39A900" stroke-width="6"/>
+                    <path d="M50 20 L50 80 M20 50 L80 50" stroke="#39A900" stroke-width="6" stroke-linecap="round"/>
+                    <circle cx="50" cy="50" r="15" fill="#39A900"/>
+                </svg>
+                <div>
+                    <h1 class="text-md sm:text-lg font-bold tracking-tight">SENA <span class="text-sena-green font-extrabold">ADSO</span></h1>
+                    <p class="text-[10px] sm:text-xs text-slate-400">Sesión 2 • Enrutamiento, Controladores & TypeScript</p>
+                </div>
+            </div>
+            <div class="hidden xl:flex space-x-3 text-xs font-medium">
+                <a href="#migracion-typescript" class="hover:text-sena-green transition-colors py-2 text-amber-400 font-bold">1. Migración a TypeScript</a>
+                <a href="#anatomia-peticion" class="hover:text-sena-green transition-colors py-2 text-sena-green font-bold">2. Anatomía HTTP</a>
+                <a href="#rutas-express" class="hover:text-sena-green transition-colors py-2 text-sky-400 font-bold">3. Enrutadores Router()</a>
+                <a href="#controladores-logica" class="hover:text-sena-green transition-colors py-2 text-amber-400 font-bold">4. Controladores</a>
+                <a href="#articulacion-puente" class="hover:text-sena-green transition-colors py-2 text-purple-400 font-bold">5. Montaje modular</a>
+                <a href="#params-queries" class="hover:text-sena-green transition-colors py-2 text-rose-400 font-bold">6. Params & Queries</a>
+                <a href="#controllabs-real" class="hover:text-sena-green transition-colors py-2 text-emerald-400 font-bold">7. ControlLabs Práctica</a>
+            </div>
+            <div class="bg-sena-green text-white px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">
+                Guía Magistral 2
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Header -->
+    <section class="bg-gradient-to-br from-sena-dark via-slate-900 to-black text-white py-12 px-4 relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-sena-green opacity-10 rounded-full blur-3xl"></div>
+        <div class="max-w-5xl mx-auto text-center relative z-10 space-y-6">
+            <span class="inline-flex items-center gap-1.5 bg-sena-blue/20 text-sky-400 border border-sena-blue/30 text-xs font-extrabold uppercase px-3 py-1.5 rounded-full tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+                TypeScript + Express.js • Arquitectura de Rutas y Controladores
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black leading-tight tracking-tight">
+                Dominando el Enrutamiento HTTP y su <br class="hidden md:block">
+                <span class="text-sena-green">Articulación con Controladores</span>
+            </h2>
+            <p class="text-slate-300 text-sm md:text-base max-w-3xl mx-auto leading-relaxed">
+                Aprende de forma didáctica y paso a paso cómo viaja una petición desde el cliente web, cómo el enrutador la intercepta y de qué manera exacta se comunica con los <strong>Controladores</strong> en TypeScript, aplicando Clean Architecture al sistema <strong>ControlLabs</strong>.
+            </p>
+            <div class="pt-2 flex flex-wrap justify-center gap-4">
+                <a href="#articulacion-puente" class="bg-sena-green hover:bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-sena-green/20 transition-all text-sm transform hover:-translate-y-0.5 flex items-center gap-2">
+                    ⚡ Ver Cómo se Articulan
+                </a>
+                <a href="#controllabs-real" class="bg-sena-blue hover:bg-sky-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all text-sm transform hover:-translate-y-0.5 flex items-center gap-2">
+                    🏛️ Aplicar en ControlLabs
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+
+        <!-- PASO 1: MIGRACIÓN DEL REPOSITORIO EXISTENTE A TYPESCRIPT -->
+        <section id="migracion-typescript" class="scroll-mt-20 space-y-8">
+            <div class="border-l-4 border-amber-500 pl-4">
+                <h3 class="text-2xl font-bold text-sena-dark tracking-tight">1. Primer paso: llevar el repositorio JavaScript existente a TypeScript</h3>
+                <p class="text-slate-500 text-sm">Partimos del repositorio ControlLabs existente y convertimos toda la aplicación a TypeScript. No mantenemos dos versiones del código ni creamos otro repositorio: al terminar, el código fuente de la aplicación queda en TypeScript y Git conserva los commits históricos de JavaScript.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center space-x-3 text-amber-600 font-bold text-sm">
+                        <span class="text-2xl">🧭</span>
+                        <h4>Antes de tocar archivos: proteger el trabajo existente</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">Abrimos la carpeta del repositorio existente y comprobamos su estado. Si hay cambios pendientes, se guardan en un commit antes de continuar. La rama de migración reemplaza la implementación JavaScript; no se mantiene una segunda versión activa. Los commits previos siguen disponibles en la historia del repositorio.</p>
+                    <div class="bg-slate-950 text-emerald-400 p-4 rounded-2xl font-mono text-[11px] space-y-2">
+                        <p class="text-slate-500"># Desde la carpeta del repositorio existente</p>
+                        <p>git status</p>
+                        <p>git switch main</p>
+                        <p>git pull --ff-only origin main</p>
+                        <p>git switch -c feat/migracion-typescript</p>
+                        <p>git log --oneline -5</p>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">Si la rama ya existe, se cambia a ella en vez de crearla otra vez. No ejecutar <code class="font-mono">git init</code>: eso iniciaría otro repositorio y no es necesario para actualizar este proyecto.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center space-x-3 text-sena-blue font-bold text-sm">
+                        <span class="text-2xl">📦</span>
+                        <h4>Instalar TypeScript y preparar compilación</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">Conservamos las dependencias existentes (por ejemplo, Express, CORS y dotenv) y añadimos TypeScript, el ejecutor de TypeScript para desarrollo y los tipos de las librerías que usamos.</p>
+                    <div class="bg-slate-950 text-sky-300 p-4 rounded-2xl font-mono text-[11px] space-y-2">
+                        <p>npm install -D typescript tsx @types/node @types/express @types/cors</p>
+                        <p>npx tsc --init</p>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">En <code class="font-mono">package.json</code> se agregan scripts como <code class="font-mono">"dev": "tsx watch src/server.ts"</code>, <code class="font-mono">"build": "tsc"</code> y <code class="font-mono">"start": "node dist/server.js"</code>. Se ajusta <code class="font-mono">tsconfig.json</code> para compilar <code class="font-mono">src</code> hacia <code class="font-mono">dist</code> usando CommonJS, acorde con el proyecto base.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl border border-slate-800 space-y-5">
+                <h4 class="text-base font-bold text-sena-green">La Clean Architecture se conserva; toda la implementación pasa a TypeScript</h4>
+                <p class="text-xs text-slate-300 leading-relaxed">Se portan todas las fuentes de la aplicación a TypeScript, pero la práctica de esta sesión modifica solo el montaje de rutas y sus controladores HTTP. Actualizar los imports y eliminar los fuentes JavaScript ya portados después de comprobar la compilación.</p>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-[11px] text-emerald-300">
+                    <p>Archivos de esta práctica:</p><p>src/app.ts</p><p>src/server.ts</p><p>src/routes/index.ts</p><p>src/routes/loan.routes.ts</p><p>src/controllers/loan.controller.ts</p>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">Se reemplaza cada fuente JavaScript por su equivalente TypeScript, se actualizan imports y se corrigen los diagnósticos del compilador. Después de portar el comportamiento y pasar pruebas, quitar el fuente antiguo con <code class="font-mono">git rm ruta/al/archivo.js</code>; revisar que no queden imports hacia archivos antiguos. No hacer reemplazos globales a ciegas.</p>
+                <p class="text-xs text-slate-300 leading-relaxed"><strong>Estado final:</strong> se versionan las fuentes <code class="font-mono">.ts</code>; el build genera <code class="font-mono">dist/*.js</code> porque Node ejecuta JavaScript. Esa carpeta es salida compilada, se ignora en Git y no es una segunda implementación que haya que mantener.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                    <h4 class="font-bold text-slate-800 text-sm">Configurar Git para el proyecto TypeScript</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">Se mantienen fuera del repositorio los secretos y artefactos generados; sí se versionan <code class="font-mono">package-lock.json</code> y la configuración de TypeScript para que el equipo reproduzca la instalación.</p>
+                    <pre class="bg-slate-950 text-emerald-300 p-4 rounded-xl font-mono text-[11px] overflow-x-auto">node_modules/
+dist/
+.env
+.env.*
+!.env.example</pre>
+                    <p class="text-[11px] text-slate-500">Crear <code class="font-mono">.env.example</code> solo con nombres de variables y valores de ejemplo no secretos.</p>
+                </div>
+                <div class="bg-sena-lightGreen p-6 rounded-3xl border border-sena-green/30 space-y-3">
+                    <h4 class="font-bold text-sena-dark text-sm">Verificar y actualizar el repositorio remoto</h4>
+                    <p class="text-xs text-slate-700 leading-relaxed">Comprobar build y pruebas. Después de eliminar las fuentes antiguas, <code class="font-mono">git ls-files 'src/**/*.js'</code> debe devolver cero resultados. Revisar el diff, guardar la migración en un commit y publicar la rama. El remoto conserva el historial previo y permite abrir una revisión antes de integrar.</p>
+                    <pre class="bg-white text-slate-800 p-4 rounded-xl font-mono text-[11px] overflow-x-auto">npm run build
+git diff --check
+git status
+git add .
+git commit -m "feat(migration): migra API a TypeScript"
+git push -u origin feat/migracion-typescript</pre>
+                </div>
+            </div>
+                    <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+                        <h4 class="font-bold text-slate-800 text-base">Flujo empresarial: ramas y commits documentados</h4>
+                        <p class="text-xs text-slate-600">Cada tarea vive en una rama corta; los cambios se integran a <code class="font-mono">main</code> mediante Pull Request revisado.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                            <div class="space-y-3"><h5 class="font-bold">Ramas: <code class="font-mono">tipo/descripcion-corta</code></h5><pre class="bg-slate-950 text-sky-300 p-4 rounded-xl font-mono text-[11px]">feat/migracion-typescript
+        fix/validacion-id-prestamo
+        docs/guia-rutas-api
+        refactor/agregador-de-rutas
+        test/loan-routes
+        chore/actualiza-dependencias</pre><p class="text-[11px] text-slate-500"><code>feat</code> añade; <code>fix</code> corrige; <code>docs</code> documenta; <code>refactor</code> reorganiza sin cambiar comportamiento; <code>test</code> agrega pruebas; <code>chore</code> mantiene el proyecto. <code>hotfix</code> se reserva según las reglas del equipo.</p></div>
+                            <div class="space-y-3"><h5 class="font-bold">Conventional Commits</h5><p class="text-slate-600">Formato <code class="font-mono">tipo(alcance): resumen en imperativo</code>. Cada commit explica un cambio coherente; evitar “cambios” o “avance”.</p><pre class="bg-slate-950 text-emerald-300 p-4 rounded-xl font-mono text-[11px]">feat(routes): agrega router de prestamos
+        fix(loans): valida el identificador
+        docs(git): documenta ramas y commits
+        test(loans): cubre filtros por fecha
+        refactor(app): centraliza montaje de rutas
+        chore(ts): activa compilacion estricta</pre><p class="text-[11px] text-slate-500">Para un cambio incompatible usar <code>feat(api)!</code> y describir <code>BREAKING CHANGE:</code> en el cuerpo.</p></div>
+                        </div>
+                        <pre class="bg-slate-900 text-emerald-300 p-4 rounded-xl font-mono text-[11px] overflow-x-auto">git switch main
+        git pull --ff-only origin main
+        git switch -c feat/migracion-typescript
+        npm run build
+        git diff --check
+        git add src/routes src/app.ts
+        git commit -m "feat(routes): agrega router de prestamos"
+        git push -u origin feat/migracion-typescript</pre>
+                        <p class="text-xs text-slate-600"><strong>Pull Request:</strong> explicar problema, solución y pruebas; solicitar revisión, resolver comentarios y repetir validaciones. Integrar según política del equipo, borrar la rama y actualizar <code class="font-mono">main</code>. No subir secretos ni forzar ramas compartidas. Compartir el enlace del PR del repositorio existente.</p>
+                    </div>
+        </section>
+
+        <!-- SECCIÓN 2: ANATOMÍA DE UNA PETICIÓN HTTP -->
+        <section id="anatomia-peticion" class="scroll-mt-20 space-y-8">
+            <div class="border-l-4 border-sena-green pl-4">
+                <h3 class="text-2xl font-bold text-sena-dark tracking-tight">2. La Ruta del Viajero: ¿Qué ocurre cuando el cliente hace una petición HTTP?</h3>
+                <p class="text-slate-500 text-sm">Comprendiendo el ciclo de vida completo de la comunicación cliente-servidor antes de escribir código.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Cliente -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center space-x-2 text-sena-blue font-bold text-sm">
+                        <span class="text-2xl">💻</span>
+                        <h4>1. El Cliente (Frontend / Postman)</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Un navegador web (ej: la interfaz de ControlLabs) o una herramienta como Postman envía un paquete HTTP indicando un <strong>método</strong> (<code class="font-mono text-sena-dark">GET</code>, <code class="font-mono text-sena-dark">POST</code>), una <strong>URL</strong> (<code class="font-mono">/api/v1/loans</code>) y opcionalmente un cuerpo JSON (<code class="font-mono">req.body</code>).
+                    </p>
+                </div>
+
+                <!-- Express Router -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center space-x-2 text-amber-600 font-bold text-sm">
+                        <span class="text-2xl">🚦</span>
+                        <h4>2. El Enrutador (Router de Express)</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        El servidor entrega la petición a la aplicación configurada en <code class="font-mono">app.ts</code>. Sus routers analizan la URL y el verbo HTTP y dirigen la solicitud al controlador correspondiente; si no hay coincidencia, Express responde 404.
+                    </p>
+                </div>
+
+                <!-- Controlador -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center space-x-2 text-purple-600 font-bold text-sm">
+                        <span class="text-2xl">🧠</span>
+                        <h4>3. El Controlador & Respuesta</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        El <strong>Controlador</strong> lee los datos de la petición, valida su formato y decide qué código HTTP y cuerpo devolver con <code class="font-mono">res.status(200).json({...})</code>.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: ENRUTAMIENTO BÁSICO Y MODULAR -->
+        <section id="rutas-express" class="scroll-mt-20 space-y-8">
+            <div class="border-l-4 border-sky-500 pl-4">
+                <h3 class="text-2xl font-bold text-sena-dark tracking-tight">3. Enrutamiento Modular en Express con TypeScript (`express.Router()`)</h3>
+                <p class="text-slate-500 text-sm">Cómo desacoplar las rutas del archivo principal para mantener un proyecto ordenado y profesional.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Explicación -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center space-x-3 text-sky-600 font-bold text-sm">
+                        <span class="text-2xl">📂</span>
+                        <h4>¿Por qué usar `express.Router()`?</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Si escribiéramos todas las rutas en un solo archivo <code class="font-mono">server.ts</code>, tendríamos miles de líneas inmanejables. La clase <code class="font-mono">Router()</code> de Express permite crear <strong>enrutadores modulares</strong> independientes (ej: <code class="font-mono">user.routes.ts</code>, <code class="font-mono">loan.routes.ts</code>).
+                    </p>
+                    <div class="bg-slate-950 text-sky-300 p-4 rounded-2xl font-mono text-[11px] space-y-2">
+                        <p class="text-slate-500">// 1. Importar y crear router</p>
+                        <p>import { Router } from 'express';</p>
+                        <p>const router = Router();</p>
+                        <p class="text-slate-500">// 2. Definir endpoints</p>
+                        <p>router.get('/saludo', (req, res) => {</p>
+                        <p>&nbsp;&nbsp;res.send('Hola SENA ADSO');</p>
+                        <p>});</p>
+                        <p>export default router;</p>
+                    </div>
+                </div>
+
+                <!-- Métodos HTTP Estándar -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center space-x-3 text-sena-green font-bold text-sm">
+                        <span class="text-2xl">🌐</span>
+                        <h4>Mapeo de Verbos HTTP en el Router</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        El enrutador asocia cada método HTTP con una acción CRUD específica sobre los recursos del sistema:
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="text-sky-600 font-bold">router.get()</span>
+                            <p class="text-slate-500 text-[10px] font-sans mt-1">Consultar recursos (Lectura)</p>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="text-emerald-600 font-bold">router.post()</span>
+                            <p class="text-slate-500 text-[10px] font-sans mt-1">Crear nuevo registro</p>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="text-amber-600 font-bold">router.put()</span>
+                            <p class="text-slate-500 text-[10px] font-sans mt-1">Modificar recurso existente</p>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="text-rose-600 font-bold">router.delete()</span>
+                            <p class="text-slate-500 text-[10px] font-sans mt-1">Borrar recurso</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: CONTROLADORES -->
+        <section id="controladores-logica" class="scroll-mt-20 space-y-8">
+            <div class="border-l-4 border-amber-500 pl-4">
+                <h3 class="text-2xl font-bold text-sena-dark tracking-tight">4. Los Controladores: Procesar la Solicitud y Responder</h3>
+                <p class="text-slate-500 text-sm">La ruta identifica el handler; el controlador lee y valida la entrada HTTP y construye la respuesta correspondiente.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Explicación -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center space-x-3 text-amber-600 font-bold text-sm">
+                        <span class="text-2xl">🧠</span>
+                        <h4>¿Qué es un Controlador en TypeScript?</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        El controlador es el handler HTTP que recibe <code class="font-mono">req</code> y <code class="font-mono">res</code>. Su estructura estable es recibir la petición, invocar la operación correspondiente y traducir su resultado a una respuesta HTTP. En este momento la llamada queda señalada; no agregamos validaciones de negocio que luego cambiarían al incorporar las demás capas.
+                    </p>
+                    <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                        <li>Recibe los datos HTTP desde <code class="font-mono">req.body</code>, <code class="font-mono">req.params</code> o <code class="font-mono">req.query</code>, según el endpoint.</li>
+                        <li>El comentario <code class="font-mono">TODO</code> marca dónde se conectará la operación futura y cómo su resultado se convertirá en respuesta HTTP.</li>
+                        <li>Mientras esa operación no existe, devuelve <code class="font-mono">501 Not Implemented</code> de forma honesta; no inventa datos ni afirma que guardó algo.</li>
+                    </ul>
+                </div>
+
+                <!-- Código de Controlador -->
+                <div class="bg-slate-900 rounded-3xl p-6 text-xs font-mono text-amber-300 space-y-3 border border-slate-800">
+                    <div class="text-slate-400 text-[10px] pb-1 border-b border-slate-800">// 📁 src/controllers/ejemplo.controller.ts</div>
+                    <pre class="overflow-x-auto">import { Request, Response } from 'express';
+
+export class EjemploController {
+    public static saludarSena = (req: Request, res: Response): void => {
+        // TODO: invocar aquí la operación correspondiente y responder con su resultado.
+        res.status(501).json({
+            success: false,
+            mensaje: 'La operación todavía no está implementada.'
+        });
+  };
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: LA ARTICULACIÓN (EL PUENTE ENTRE RUTA Y CONTROLADOR) -->
+        <section id="articulacion-puente" class="scroll-mt-20 space-y-8">
+            <div class="border-l-4 border-purple-500 pl-4">
+                <h3 class="text-2xl font-bold text-sena-dark tracking-tight">5. La Articulación: Cómo una Ruta Invoca a su Controlador</h3>
+                <p class="text-slate-500 text-sm">El momento clave: uniendo los cables entre el enrutador modular y las funciones lógicas del controlador.</p>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                <h4 class="font-bold text-slate-800 text-base">🔗 ¿Cómo se conectan en código?</h4>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    El archivo de rutas importa el controlador y le asigna la función correspondiente a cada verbo HTTP sin escribir lógica dentro de la ruta. Observa el esquema exacto:
+                </p>
+
+                <!-- Diagrama visual en código -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+                    <div class="bg-slate-900 text-emerald-400 p-5 rounded-2xl border border-slate-800 space-y-2">
+                        <div class="text-slate-400 text-[10px] border-b border-slate-800 pb-1">// 📁 src/routes/ejemplo.routes.ts (El Enrutador)</div>
+                        <pre class="overflow-x-auto">import { Router } from 'express';
+import { EjemploController } from '../controllers/ejemplo.controller';
+
+const router = Router();
+
+// Vinculación: Ruta -> Método Controlador
+router.get('/saludo', EjemploController.saludarSena);
+
+export default router;</pre>
+                    </div>
+
+                    <div class="bg-slate-900 text-sky-300 p-5 rounded-2xl border border-slate-800 space-y-2">
+                        <div class="text-slate-400 text-[10px] border-b border-slate-800 pb-1">// 📁 src/routes/index.ts (Agregador de recursos)</div>
+                        <pre class="overflow-x-auto">import { Router } from 'express';
+import ejemploRoutes from './ejemplo.routes';
+
+const router = Router();
+router.use('/ejemplo', ejemploRoutes);
+
+export default router;</pre>
+                    </div>
+
+                    <div class="bg-slate-900 text-amber-300 p-5 rounded-2xl border border-slate-800 space-y-2">
+                        <div class="text-slate-400 text-[10px] border-b border-slate-800 pb-1">// 📁 src/app.ts (Configuración de Express)</div>
+                        <pre class="overflow-x-auto">import express from 'express';
+import apiRoutes from './routes';
+
+const app = express();
+app.use(express.json());
+app.use('/api/v1', apiRoutes);
+
+export default app;</pre>
+                    </div>
+                </div>
+
+                <div class="bg-sena-lightGreen p-4 rounded-2xl border border-sena-green/30 text-xs text-slate-700 space-y-1">
+                    <p class="font-bold text-sena-dark">💡 Conclusión pedagógica:</p>
+                    <p><code class="font-mono">app.ts</code> configura Express y <code class="font-mono">routes/index.ts</code> reúne routers por recurso. Cuando llega <code class="font-mono">GET /api/v1/ejemplo/saludo?nombre=Ana</code>, Express combina <code class="font-mono">/api/v1</code> + <code class="font-mono">/ejemplo</code> + <code class="font-mono">/saludo</code> y el router entrega la solicitud a <code class="font-mono">EjemploController.saludarSena</code>. El query queda disponible en <code class="font-mono">req.query.nombre</code>; el TODO indica dónde se conectará la operación futura. Así <code class="font-mono">app.ts</code> no se convierte en un inventario de endpoints.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 6: PARÁMETROS Y QUERIES -->
+        <section id="params-queries" class="scroll-mt-20 space-y-8">
+            <div class="border-l-4 border-rose-500 pl-4">
+                <h3 class="text-2xl font-bold text-sena-dark tracking-tight">6. Manejo de Parámetros (`req.params`) y Consultas (`req.query`) con Validación</h3>
+                <p class="text-slate-500 text-sm">Extrayendo datos dinámicos desde la URL y validando que el cliente envíe la información correcta.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- req.params -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <span class="bg-purple-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-full uppercase">🔗 Route Parameters (`req.params`)</span>
+                    <h4 class="font-bold text-slate-800 text-sm">Identificadores Obligatorios en la Ruta</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Se definen con dos puntos (<code class="font-mono text-sena-dark">:id</code>). Sirven para identificar un recurso único.
+                    </p>
+                    <div class="bg-slate-950 text-purple-300 p-3 rounded-xl font-mono text-[11px] space-y-1">
+                        <p class="text-slate-500">// Ruta: /loans/:id</p>
+                        <p>const { id } = req.params;</p>
+                        <p>console.log(`Buscando préstamo ID: ${id}`);</p>
+                    </div>
+                </div>
+
+                <!-- req.query -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <span class="bg-sena-blue text-white font-bold text-[10px] px-2.5 py-1 rounded-full uppercase">🔍 Query Parameters (`req.query`)</span>
+                    <h4 class="font-bold text-slate-800 text-sm">Filtros y Paginación Opcionales</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Se envían después del signo <code class="font-mono">?</code> en la URL. Ideales para filtros de búsqueda.
+                    </p>
+                    <div class="bg-slate-950 text-sky-300 p-3 rounded-xl font-mono text-[11px] space-y-1">
+                        <p class="text-slate-500">// URL: /loans/search?room=302&status=PENDING</p>
+                        <p>const { room, status } = req.query;</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+                <h4 class="font-bold text-slate-800 text-base">Desglose de cada endpoint: path, parámetros y propósito</h4>
+                <p class="text-xs text-slate-600">Los prefijos se componen: <code class="font-mono">app.ts</code> monta <code class="font-mono">/api/v1</code>, <code class="font-mono">routes/index.ts</code> monta <code class="font-mono">/loans</code>, y <code class="font-mono">loan.routes.ts</code> define el path relativo. Un path sin <code class="font-mono">:param</code> no lee <code class="font-mono">req.params</code>; query y body son entradas distintas.</p>
+                <div class="overflow-x-auto"><table class="w-full min-w-[760px] text-left text-xs border-collapse"><thead><tr class="bg-slate-100"><th class="p-3 border">Ruta final</th><th class="p-3 border">req.params</th><th class="p-3 border">req.query</th><th class="p-3 border">Body y resultado</th></tr></thead><tbody class="text-slate-600">
+                    <tr><td class="p-3 border font-mono">POST /api/v1/loans</td><td class="p-3 border">Ninguno; no hay segmentos variables.</td><td class="p-3 border">Ninguna en este ejemplo.</td><td class="p-3 border">El handler recibe <code class="font-mono">req.body</code>. El TODO indica que después llamará al servicio; por ahora responde 501.</td></tr>
+                    <tr><td class="p-3 border font-mono">GET /api/v1/loans/search?room=302&amp;startDate=2026-10-01&amp;endDate=2026-10-15</td><td class="p-3 border">Ninguno. <code class="font-mono">search</code> es literal, no parámetro.</td><td class="p-3 border"><code class="font-mono">room</code>, <code class="font-mono">startDate</code>, <code class="font-mono">endDate</code> quedan disponibles en <code class="font-mono">req.query</code>.</td><td class="p-3 border">Sin body. El handler responderá 501 hasta que se conecte la consulta.</td></tr>
+                    <tr><td class="p-3 border font-mono">GET /api/v1/loans/801</td><td class="p-3 border"><code class="font-mono">id</code> es obligatorio en <code class="font-mono">/loans/:id</code>; Express lo entrega como texto en <code class="font-mono">req.params.id</code>.</td><td class="p-3 border">Ninguna.</td><td class="p-3 border">Sin body. El handler usa el ID como entrada y responde 501 hasta conectar la consulta.</td></tr>
+                    <tr><td class="p-3 border font-mono">PUT /api/v1/loans/801/accept</td><td class="p-3 border"><code class="font-mono">id</code> es el segmento variable; <code class="font-mono">accept</code> es literal.</td><td class="p-3 border">Ninguna.</td><td class="p-3 border">Sin body. El handler usará el ID al conectarse la operación de aceptación; ahora responde 501.</td></tr>
+                </tbody></table></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600">
+                    <p class="bg-slate-50 p-4 rounded-xl border border-slate-200"><strong>Route params:</strong> en <code class="font-mono">/loans/:id</code>, una petición a <code class="font-mono">/loans/801</code> da <code class="font-mono">req.params.id === '801'</code>. El valor llega como string; el handler lo recibe y lo pasará a la operación que se conecte después.</p>
+                    <p class="bg-slate-50 p-4 rounded-xl border border-slate-200"><strong>Query params:</strong> aparecen tras <code class="font-mono">?</code> y se separan con <code class="font-mono">&amp;</code>. Express los expone en <code class="font-mono">req.query</code>; por ejemplo <code class="font-mono">?room=302&amp;startDate=2026-10-01</code>. Son texto y deben validarse; suelen ser opcionales.</p>
+                </div>
+                <p class="text-xs text-slate-600">Definir primero paths estáticos como <code class="font-mono">/search</code> y luego los dinámicos como <code class="font-mono">/:id</code> mejora la lectura y evita colisiones si se agregan patrones más amplios.</p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 7: CASO DE ESTUDIO REAL: CONTROLLABS -->
+        <section id="controllabs-real" class="scroll-mt-20 space-y-8">
+            <div class="border-l-4 border-emerald-500 pl-4">
+                <h3 class="text-2xl font-bold text-sena-dark tracking-tight">7. Práctica ControlLabs: Router y Controller</h3>
+                <p class="text-slate-500 text-sm">En esta sesión trabajamos solo estas dos piezas: el router identifica el endpoint; el controller recibe la solicitud y construye la respuesta HTTP.</p>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                <h4 class="font-bold text-slate-800 text-base">Ensamble de URLs</h4>
+                <p class="text-xs text-slate-600">La ruta del recurso se define relativa al prefijo <code class="font-mono">/loans</code>. El agregador de rutas lo monta bajo ese prefijo y <code class="font-mono">app.ts</code> monta el agregador en <code class="font-mono">/api/v1</code>. En esta práctica los handlers no consultan ni guardan datos: lo indican con una respuesta explícita cuando la operación está pendiente.</p>
+                <div class="bg-slate-900 rounded-2xl p-6 text-xs font-mono text-emerald-300 space-y-3 border border-slate-800">
+                    <div class="text-slate-400 text-[10px] pb-1 border-b border-slate-800">// 📁 src/routes/loan.routes.ts: método + path → handler</div>
+                    <pre class="overflow-x-auto">import { Router } from 'express';
+import { LoanController } from '../controllers/loan.controller';
+
+const router = Router();
+
+router.get('/search', LoanController.getLoansByFilter);
+router.post('/', LoanController.createLoan);
+router.put('/:id/accept', LoanController.acceptLoanInventory);
+router.get('/:id', LoanController.getLoanById);
+
+export default router;</pre>
+                </div>
+                <div class="bg-slate-900 rounded-2xl p-6 text-xs font-mono text-sky-300 space-y-3 border border-slate-800">
+                    <div class="text-slate-400 text-[10px] pb-1 border-b border-slate-800">// 📁 src/routes/index.ts: agrupa los routers</div>
+                    <pre class="overflow-x-auto">import { Router } from 'express';
+import loanRoutes from './loan.routes';
+
+const router = Router();
+router.use('/loans', loanRoutes);
+
+export default router;</pre>
+                </div>
+                <div class="bg-slate-900 rounded-2xl p-6 text-xs font-mono text-amber-300 space-y-3 border border-slate-800">
+                    <div class="text-slate-400 text-[10px] pb-1 border-b border-slate-800">// 📁 src/controllers/loan.controller.ts: handlers y puntos de extensión</div>
+                    <pre class="overflow-x-auto">import { Request, Response } from 'express';
+
+export class LoanController {
+  public static createLoan = (req: Request, res: Response): void => {
+    // TODO: llamar al servicio con req.body y responder 201 con el préstamo creado.
+    res.status(501).json({
+      success: false,
+      message: 'El registro de préstamos todavía no está implementado.'
+    });
+  };
+
+  public static getLoansByFilter = (req: Request, res: Response): void => {
+    // TODO: tomar los filtros de req.query, llamar al servicio y responder con los resultados.
+    res.status(501).json({
+      success: false,
+      message: 'La consulta del historial todavía no está implementada.'
+    });
+  };
+
+  public static getLoanById = (req: Request, res: Response): void => {
+    const { id } = req.params;
+    // TODO: pasar id a la operación de consulta y responder con el préstamo encontrado.
+    res.status(501).json({
+      success: false,
+      message: `La consulta del préstamo ${id} todavía no está implementada.`
+    });
+  };
+
+  public static acceptLoanInventory = (req: Request, res: Response): void => {
+    const { id } = req.params;
+    // TODO: pasar id a la operación de aceptación y responder con el resultado.
+    res.status(501).json({
+      success: false,
+      message: `La aceptación del préstamo ${id} todavía no está implementada.`
+    });
+  };
+}
+                </div>
+            </div>
+            <div class="bg-sena-lightGreen p-4 rounded-2xl border border-sena-green/30 text-xs text-slate-700 space-y-2">
+                <p class="font-bold text-sena-dark">Qué comprobar en cada petición</p>
+                <p>En esta etapa los handlers dejan visible el punto de extensión: recibirán <code class="font-mono">req.body</code>, <code class="font-mono">req.query</code> o <code class="font-mono">req.params.id</code>, llamarán a la operación correspondiente y mapearán su resultado a HTTP. Mientras esa operación no esté conectada, responden 501 sin afirmar que validaron o guardaron datos.</p>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+                <h4 class="font-bold text-slate-800 text-base">Qué hace cada función del controlador</h4>
+                <p class="text-xs text-slate-600">Los cuatro métodos estáticos son handlers que el router conecta con cada endpoint. Sus firmas y el mapeo HTTP se conservarán; el cuerpo con <code class="font-mono">TODO</code> y 501 es temporal hasta conectar las operaciones posteriores.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[760px] text-left text-xs border-collapse">
+                        <thead><tr class="bg-slate-100 text-slate-700"><th class="p-3 border border-slate-200">Función</th><th class="p-3 border border-slate-200">Qué recibe y hace</th><th class="p-3 border border-slate-200">Qué responde</th></tr></thead>
+                        <tbody class="text-slate-600">
+                            <tr><td class="p-3 border border-slate-200 font-mono">createLoan</td><td class="p-3 border border-slate-200">Es el handler de <code class="font-mono">POST /loans</code>. En el TODO usará <code class="font-mono">req.body</code> como entrada para la futura operación de creación.</td><td class="p-3 border border-slate-200">501 temporalmente. Más adelante responderá con el resultado real de la creación, normalmente 201.</td></tr>
+                            <tr><td class="p-3 border border-slate-200 font-mono">getLoansByFilter</td><td class="p-3 border border-slate-200">Es el handler de <code class="font-mono">GET /loans/search</code>. En el TODO usará los filtros que llegan en <code class="font-mono">req.query</code>.</td><td class="p-3 border border-slate-200">501 temporalmente. Más adelante responderá con el historial encontrado.</td></tr>
+                            <tr><td class="p-3 border border-slate-200 font-mono">getLoanById</td><td class="p-3 border border-slate-200">Es el handler de <code class="font-mono">GET /loans/:id</code>. Lee el identificador de <code class="font-mono">req.params.id</code>.</td><td class="p-3 border border-slate-200">501 temporalmente. Más adelante responderá con el préstamo correspondiente o el status adecuado.</td></tr>
+                            <tr><td class="p-3 border border-slate-200 font-mono">acceptLoanInventory</td><td class="p-3 border border-slate-200">Es el handler de <code class="font-mono">PUT /loans/:id/accept</code>. Toma el ID de <code class="font-mono">req.params.id</code> para la futura operación.</td><td class="p-3 border border-slate-200">501 temporalmente. Más adelante responderá con el resultado de la aceptación.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed"><strong>Qué se conserva al avanzar:</strong> los paths, nombres de handlers, parámetros HTTP, firmas <code class="font-mono">(req, res)</code> y el lugar donde se forma la respuesta. Se reemplazan los <code class="font-mono">TODO</code> por llamadas a las operaciones que se enseñen después; no hay validación de negocio provisional que luego tengamos que mover.</p>
+            </div>
+        </section>
+
+        <section id="probar-endpoints" class="scroll-mt-20 space-y-6">
+            <div class="border-l-4 border-sky-500 pl-4">
+                <h3 class="text-2xl font-bold text-sena-dark tracking-tight">8. Probar los endpoints con Thunder Client</h3>
+                    <p class="text-slate-500 text-sm">Levanta la API, configura cada petición en Thunder Client y compara la respuesta observada con la respuesta temporal definida por los handlers.</p>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-700">
+                    <p><strong>Antes de probar:</strong> en la terminal, entra a la carpeta del proyecto TypeScript y ejecuta <code class="font-mono">npm run dev</code>. En estos ejemplos se asume que el servidor escucha en el puerto <code class="font-mono">3000</code>; si tu <code class="font-mono">PORT</code> es otro, reemplaza ese número en las URLs. Mantén esa terminal abierta mientras haces las peticiones.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <h4 class="font-bold text-slate-800 text-sm">Thunder Client: configurar cada petición paso a paso</h4>
+                    <ol class="text-xs text-slate-600 list-decimal list-inside space-y-2">
+                        <li>Abre Thunder Client en la barra lateral, crea la colección <code class="font-mono">ControlLabs</code> y elige <strong>New Request</strong>.</li>
+                        <li>En el selector de método y la caja de URL configura <code class="font-mono">POST http://localhost:3000/api/v1/loans</code>. Pulsa <strong>Body → JSON</strong> y completa las propiedades del ejemplo. Thunder Client normalmente agrega el header automáticamente; comprueba en <strong>Headers</strong> que aparezca <code class="font-mono">Content-Type: application/json</code>.</li>
+                        <li>Para buscar, cambia el método a <code class="font-mono">GET</code> y usa <code class="font-mono">http://localhost:3000/api/v1/loans/search</code>. En <strong>Query</strong> agrega <code class="font-mono">room=302</code>, <code class="font-mono">startDate=2026-10-01</code> y <code class="font-mono">endDate=2026-10-15</code>. La herramienta los agrega a la URL después de <code class="font-mono">?</code>; no van en el body.</li>
+                        <li>Para el parámetro de ruta elige <code class="font-mono">GET</code> y escribe <code class="font-mono">http://localhost:3000/api/v1/loans/801</code>. El valor <code class="font-mono">801</code> ocupa el segmento <code class="font-mono">:id</code>.</li>
+                        <li>Para aceptar, elige <code class="font-mono">PUT</code> y escribe <code class="font-mono">http://localhost:3000/api/v1/loans/801/accept</code>. No hay body en este handler provisional.</li>
+                        <li>Pulsa <strong>Send</strong>, revisa status y respuesta, y guarda cada request en la colección.</li>
+                    </ol>
+                                        <p class="text-xs text-slate-600">En el body del POST crea estas propiedades: <code class="font-mono">aula</code> (texto), <code class="font-mono">numeroPC</code>, <code class="font-mono">mouse</code> y <code class="font-mono">teclados</code> (números), <code class="font-mono">nombreGuardaEntrega</code> e <code class="font-mono">instructorRecibe</code> (texto). En JSON los textos llevan comillas dobles; los números no.</p>
+                                        <pre class="bg-slate-950 text-emerald-300 p-4 rounded-xl font-mono text-[11px] overflow-x-auto">{
+    "aula": "Sala 302 TI",
+    "numeroPC": 20,
+    "mouse": 20,
+    "teclados": 20,
+    "nombreGuardaEntrega": "Ana Perez",
+    "instructorRecibe": "Carlos Ruiz"
+}</pre>
+                </div>
+
+                <div class="bg-sena-lightGreen p-6 rounded-3xl border border-sena-green/30 space-y-4 text-xs text-slate-700">
+                    <h4 class="font-bold text-slate-800 text-sm">¿Por qué <code class="font-mono">Content-Type</code>?</h4>
+                    <p>El body contiene bytes; el header <code class="font-mono">Content-Type</code> le dice al servidor en qué formato se enviaron. Al seleccionar JSON, se indica <code class="font-mono">application/json</code>, y el middleware <code class="font-mono">express.json()</code> puede interpretarlo y colocarlo en <code class="font-mono">req.body</code>.</p>
+                    <p>Se usa cuando la petición envía un body JSON, como el <code class="font-mono">POST</code>. Un <code class="font-mono">GET</code> con filtros no lleva body: sus query params van en la URL, así que no requiere ese header. El <code class="font-mono">PUT</code> actual tampoco envía body; no se agrega <code class="font-mono">Content-Type</code> si no se manda contenido.</p>
+                    <p><strong>No confundir:</strong> <code class="font-mono">Content-Type</code> describe lo que el cliente envía; <code class="font-mono">Accept</code> expresa el formato que el cliente prefiere recibir.</p>
+                </div>
+
+                <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-4"><strong>Importante:</strong> recibir <code class="font-mono">501 Not Implemented</code> en las cuatro rutas registradas es lo esperado ahora: confirma que el router encontró el handler y que este marca la operación pendiente. No significa que los datos se hayan creado, buscado o actualizado. Cuando esas operaciones se implementen, se actualizan las respuestas esperadas y se repiten las pruebas.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer SENA -->
+    <footer class="bg-sena-dark text-white border-t-2 border-sena-green py-8 text-center text-xs text-slate-400 space-y-2">
+        <p class="font-bold text-slate-200">SERVICIO NACIONAL DE APRENDIZAJE - SENA</p>
+        <p>Centro de Gestión de Mercados, Logística y Tecnologías de la Información</p>
+        <p>Análisis y Desarrollo de Software (ADSO) • Enrutamiento y Controladores con TypeScript • ControlLabs</p>
+        <p class="text-sena-green font-semibold pt-2">Recurso Pedagógico Oficial para Instructores y Aprendices</p>
+    </footer>
+
+</body>
+</html>
